@@ -3,11 +3,11 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Bagua Theremin · The Eight Trigrams</title>
+  <title>Bagua Theremin · WebAR</title>
   <link rel="icon" type="image/png" href="/bagua-theremin/favicon-32.png" />
   <link rel="apple-touch-icon" href="/bagua-theremin/apple-touch-icon.png" />
 
-  <meta name="description" content="A browser theremin played across the Later Heaven Bagua: your right hand's position on the wheel picks colour and pitch, your left hand's height controls volume." />
+  <meta name="description" content="A WebAR theremin: a 3D bagua mirror floats over your camera feed. Your right hand's position on it picks colour and pitch, your left hand's height controls volume." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700&family=Josefin+Sans:wght@300;400&display=swap" rel="stylesheet" />
@@ -17,7 +17,11 @@
     html, body { margin: 0; height: 100%; background: #0a0a0c; overflow: hidden; touch-action: none; }
     body { font-family: 'Josefin Sans', sans-serif; color: #eee; }
 
-    #video { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+    #video {
+      position: fixed; inset: 0; width: 100%; height: 100%;
+      object-fit: cover; z-index: 0;
+    }
+    #video.mirrored { transform: scaleX(-1); }
 
     #landing {
       position: fixed; inset: 0; z-index: 20;
@@ -69,8 +73,8 @@
   <div id="landing">
     <h1>Bagua Theremin</h1>
     <p>
-      A theremin played across the Later Heaven Bagua. Your <strong>right hand</strong>'s
-      position on the wheel picks colour and pitch, gliding continuously — no fixed notes.
+      A bagua mirror floats over your camera feed. Your <strong>right hand</strong>'s
+      position on it picks colour and pitch, gliding continuously — no fixed notes.
       Your <strong>left hand</strong>'s height controls volume. With only one hand up, it
       plays at a quiet default; bring the other in to shape it.
     </p>

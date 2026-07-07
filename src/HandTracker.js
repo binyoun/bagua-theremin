@@ -59,6 +59,14 @@ export class HandTracker {
     await this._openCamera(next);
   }
 
+  // Whether the *displayed* video should be CSS-mirrored (scaleX(-1)) to
+  // match the mirrored hand coordinates poll() reports — front camera
+  // only, so the visible feed behaves like a mirror and a hand's on-screen
+  // position matches where the disc actually reacts.
+  get isMirrored() {
+    return this._facingMode === 'user';
+  }
+
   // Returns an array of {x, y, handedness}, one per detected hand. Only x
   // is mirrored for the front camera (selfie view) — the rear camera
   // already matches what's in front of it. y is never mirrored.
