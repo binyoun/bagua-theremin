@@ -10,13 +10,18 @@
 
 import { HandTracker } from './HandTracker.js';
 import { SoundEngine } from './SoundEngine.js';
-import { BaguaDisc, TRIGRAMS, freqAt, droneFreqAt } from './BaguaDisc.js';
+import { BaguaDisc, TRIGRAMS, freqAt, droneFreqAt, trigramIndexAt } from './BaguaDisc.js';
 
 const canvas = document.getElementById('stage');
 const video = document.getElementById('video');
 const landing = document.getElementById('landing');
 const beginBtn = document.getElementById('begin');
 const flipBtn = document.getElementById('flipCam');
+const hud = document.getElementById('hud');
+const hudName = document.getElementById('hudName');
+const hudMeta = document.getElementById('hudMeta');
+const volMeter = document.getElementById('volMeter');
+const volFill = document.getElementById('volMeter-fill');
 
 const sound = new SoundEngine();
 const tracker = new HandTracker();
@@ -87,7 +92,29 @@ function loop(t) {
   const freq = freqAt(angleDeg);
   const drone = droneFreqAt(angleDeg);
   sound.update(freq, drone, radiusFraction, volume);
-  disc.update(dt, angleDeg, !!pitchHand);
+  disc.update(dt, angleDeg, radiusFraction, !!pitchHand);
+
+  // HUD: name the trigram actually sounding right now, in words — colour
+  // and light alone proved hard to read against a live camera background.
+  if (pitchHand) {
+    const tri = TRIGRAMS[trigramIndexAt(angleDeg)];
+    hudName.textContent = `${tri.name} · ${tri.element}`;
+    hudMeta.textContent = `${tri.direction} · ${Math.round(freq)} Hz · vol ${Math.round(volume * 100)}%`;
+    hud.classList.add('visible');
+  } else {
+    hud.classList.remove('visible');
+  }
+
+  // Volume meter: sits directly at the left hand's own screen position, so
+  // it's unambiguous which hand it belongs to and what it's currently doing.
+  if (volumeHand) {
+    volMeter.style.left = `${volumeHand.x * 100}%`;
+    volMeter.style.top = `${volumeHand.y * 100}%`;
+    volFill.style.height = `${volume * 100}%`;
+    volMeter.classList.add('visible');
+  } else {
+    volMeter.classList.remove('visible');
+  }
 
   requestAnimationFrame(loop);
 }

@@ -64,6 +64,35 @@
     #flipCam.visible { display: flex; }
     #flipCam:hover { background: rgba(255,255,255,.15); }
     #flipCam:active { transform: scale(.92); }
+
+    /* Live readout: which trigram is currently sounding, and its pitch —
+       the direct textual answer to "what is my hand doing right now",
+       since colour/light alone can be hard to read against a camera feed. */
+    #hud {
+      position: fixed; top: 16px; left: 50%; transform: translateX(-50%); z-index: 15;
+      text-align: center; padding: 8px 18px; border-radius: 20px;
+      background: rgba(0,0,0,.45); backdrop-filter: blur(6px);
+      border: 1px solid rgba(255,255,255,.15);
+      opacity: 0; transition: opacity .25s ease; pointer-events: none;
+    }
+    #hud.visible { opacity: 1; }
+    #hud .name { font-family: 'Cinzel Decorative', serif; font-size: 15px; }
+    #hud .meta { font-family: 'Josefin Sans', sans-serif; font-size: 11px; letter-spacing: .06em; color: rgba(255,255,255,.6); margin-top: 1px; }
+
+    /* Volume meter: follows the left hand's screen position directly, so
+       there's an explicit visual answer to "what is my other hand doing" —
+       the 3D scene has nothing to show for volume on its own. */
+    #volMeter {
+      position: fixed; z-index: 14; width: 10px; height: 120px;
+      border: 1px solid rgba(255,255,255,.3); border-radius: 5px;
+      background: rgba(0,0,0,.35); overflow: hidden;
+      opacity: 0; transition: opacity .2s ease; pointer-events: none;
+      transform: translate(-50%, -50%);
+    }
+    #volMeter.visible { opacity: 1; }
+    #volMeter-fill {
+      position: absolute; left: 0; right: 0; bottom: 0; background: rgba(255,255,255,.85);
+    }
   </style>
 </head>
 <body>
@@ -83,8 +112,11 @@
   </div>
 
   <canvas id="stage"></canvas>
-  <p id="hint">Right hand: position on the wheel = pitch and colour · Left hand: height = volume</p>
+  <p id="hint">Right hand: position on the disc = pitch and colour · Left hand: height = volume</p>
   <button id="flipCam" aria-label="Switch camera" title="Switch front/rear camera">⟲</button>
+
+  <div id="hud"><p class="name" id="hudName"></p><p class="meta" id="hudMeta"></p></div>
+  <div id="volMeter"><div id="volMeter-fill"></div></div>
 
   <script type="module" src="/src/main.js"></script>
 </body>

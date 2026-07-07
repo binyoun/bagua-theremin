@@ -126,6 +126,7 @@ export class BaguaDisc {
   _buildDisc() {
     const step = (Math.PI * 2) / TRIGRAMS.length;
     this.wedgeMats = [];
+    this.wedgeGroups = []; // one sub-group per wedge, so the active one can physically lift forward
 
     TRIGRAMS.forEach((tri, i) => {
       const a0 = -Math.PI / 2 + i * step; // -90° = screen-top start, matches the flat version
@@ -136,16 +137,31 @@ export class BaguaDisc {
       });
       this.wedgeMats.push(mat);
       const mesh = new THREE.Mesh(buildWedgeGeometry(a0, a1), mat);
-      this.group.add(mesh);
+
+      const wedgeGroup = new THREE.Group();
+      wedgeGroup.add(mesh);
 
       const mid = (a0 + a1) / 2;
       const midR = (INNER_R + OUTER_R) / 2;
       const arcSpan = step * midR * 0.62; // leaves margin from the wedge edges
       const rows = [midR - 0.16, midR, midR + 0.16];
       for (let row = 0; row < 3; row++) {
-        this.group.add(buildLineRow(mid, rows[row], arcSpan, tri.lines[row] === '1'));
+        wedgeGroup.add(buildLineRow(mid, rows[row], arcSpan, tri.lines[row] === '1'));
       }
+      this.group.add(wedgeGroup);
+      this.wedgeGroups.push(wedgeGroup);
     });
+
+    // Pitch-hand marker: a small glowing bead that sits exactly where the
+    // right hand's position currently reads on the disc — the direct,
+    // literal answer to "where is my hand actually affecting this." Child
+    // of the rotating group so it moves with the disc.
+    this.pitchMarker = new THREE.Mesh(
+      new THREE.SphereGeometry(0.055, 20, 16),
+      new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0xffffff, emissiveIntensity: 2, roughness: 0.3 })
+    );
+    this.pitchMarker.visible = false;
+    this.group.add(this.pitchMarker);
 
     // Mirror centre — the traditional bagua mirror's namesake feature.
     const mirror = new THREE.Mesh(
@@ -197,7 +213,7 @@ export class BaguaDisc {
     return { angleDeg: deg, radiusFraction };
   }
 
-  update(dt, pitchAngleDeg, isActive) {
+  update(dt, pitchAngleDeg, radiusFraction, isActive) {
     this._t += dt;
     this._rotation += dt * (Math.PI * 2) / 40; // one full turn per 40s
     this.group.rotation.z = this._rotation;
@@ -206,13 +222,35 @@ export class BaguaDisc {
 
     const step = 360 / TRIGRAMS.length;
     this.wedgeMats.forEach((mat, i) => {
-      if (!isActive) { mat.emissiveIntensity = 1; return; }
+      const wedgeGroup = this.wedgeGroups[i];
+      if (!isActive) {
+        mat.emissiveIntensity = 1;
+        wedgeGroup.position.z = 0;
+        return;
+      }
       const wedgeMid = i * step + step / 2;
       let d = Math.abs(pitchAngleDeg - wedgeMid);
       d = Math.min(d, 360 - d);
       const closeness = Math.max(0, 1 - d / (step * 1.3));
+      // Brighten AND physically lift the active wedge forward — a wedge
+      // that's merely brighter can be easy to miss against a busy camera
+      // background; one that visibly pops toward the viewer is not.
       mat.emissiveIntensity = 1 + closeness * 5;
+      wedgeGroup.position.z = closeness * 0.09;
     });
+
+    if (isActive) {
+      // Place the pitch marker exactly where the hand currently reads on
+      // the disc, in the same local (pre-rotation) space the wedges are
+      // built in — as a child of the rotating group, it then lands back
+      // at the correct on-screen position automatically.
+      const localAngleRad = (pitchAngleDeg - 90) * Math.PI / 180;
+      const r = INNER_R + Math.max(0.15, radiusFraction) * (OUTER_R - INNER_R);
+      this.pitchMarker.position.set(r * Math.cos(localAngleRad), r * Math.sin(localAngleRad), DEPTH + 0.12);
+      this.pitchMarker.visible = true;
+    } else {
+      this.pitchMarker.visible = false;
+    }
 
     this.renderer.render(this.scene, this.camera);
   }
