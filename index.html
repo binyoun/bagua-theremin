@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bagua Theremin · The Eight Trigrams</title>
+  <link rel="icon" type="image/png" href="/bagua-theremin/favicon-32.png" />
+  <link rel="apple-touch-icon" href="/bagua-theremin/apple-touch-icon.png" />
+
+  <meta name="description" content="A browser theremin played across the Later Heaven Bagua: your right hand's position on the wheel picks colour and pitch, your left hand's height controls volume." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700&family=Josefin+Sans:wght@300;400&display=swap" rel="stylesheet" />
+  <style>
+    :root { color-scheme: dark; }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; height: 100%; background: #0a0a0c; overflow: hidden; touch-action: none; }
+    body { font-family: 'Josefin Sans', sans-serif; color: #eee; }
+
+    #video { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+
+    #landing {
+      position: fixed; inset: 0; z-index: 20;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      text-align: center; padding: 24px; background: #0a0a0c;
+      transition: opacity .6s ease;
+    }
+    #landing.hidden { opacity: 0; pointer-events: none; }
+    #landing h1 { font-family: 'Cinzel Decorative', serif; font-size: clamp(20px, 4.5vw, 30px); margin: 0 0 10px; letter-spacing: .02em; }
+    #landing p { max-width: 480px; line-height: 1.7; color: rgba(255,255,255,.65); font-weight: 300; font-size: 14px; margin: 0 0 24px; }
+    #landing .warn { font-size: 11px; color: rgba(255,180,120,.8); margin-bottom: 22px; text-transform: uppercase; letter-spacing: .08em; }
+    #begin {
+      font-family: 'Josefin Sans', sans-serif; text-transform: uppercase; letter-spacing: .14em; font-size: 13px;
+      padding: 14px 34px; border-radius: 2px; border: 1px solid rgba(255,255,255,.5); background: transparent; color: #eee;
+      cursor: pointer; transition: all .3s;
+    }
+    #begin:hover { background: rgba(255,255,255,.08); }
+    #begin:disabled { opacity: .4; cursor: default; }
+
+    #stage {
+      position: fixed; inset: 0; width: 100%; height: 100%;
+      display: block; opacity: 0; transition: opacity .8s ease;
+    }
+    #stage.ready { opacity: 1; }
+
+    #hint {
+      position: fixed; left: 0; right: 0; bottom: 18px; z-index: 5;
+      text-align: center; font-size: 11px; letter-spacing: .08em; text-transform: uppercase;
+      color: rgba(255,255,255,.4); pointer-events: none;
+    }
+
+    #flipCam {
+      position: fixed; top: 16px; right: 16px; z-index: 15;
+      width: 40px; height: 40px; border-radius: 50%;
+      border: 1px solid rgba(255,255,255,.3); background: rgba(0,0,0,.35);
+      color: #eee; font-size: 17px; cursor: pointer; display: none;
+      align-items: center; justify-content: center; backdrop-filter: blur(6px);
+      transition: background .2s;
+    }
+    #flipCam.visible { display: flex; }
+    #flipCam:hover { background: rgba(255,255,255,.15); }
+    #flipCam:active { transform: scale(.92); }
+  </style>
+</head>
+<body>
+
+  <video id="video" autoplay playsinline muted></video>
+
+  <div id="landing">
+    <h1>Bagua Theremin</h1>
+    <p>
+      A theremin played across the Later Heaven Bagua. Your <strong>right hand</strong>'s
+      position on the wheel picks colour and pitch, gliding continuously — no fixed notes.
+      Your <strong>left hand</strong>'s height controls volume. With only one hand up, it
+      plays at a quiet default; bring the other in to shape it.
+    </p>
+    <p class="warn">Uses your camera locally, on-device. Nothing is recorded or uploaded.</p>
+    <button id="begin">Begin</button>
+  </div>
+
+  <canvas id="stage"></canvas>
+  <p id="hint">Right hand: position on the wheel = pitch and colour · Left hand: height = volume</p>
+  <button id="flipCam" aria-label="Switch camera" title="Switch front/rear camera">⟲</button>
+
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>
